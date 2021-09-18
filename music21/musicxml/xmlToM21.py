@@ -1770,6 +1770,8 @@ class PartParser(XMLParserBase):
             first_ps = partStaffs[0]
             for top_m, bottom_m in zip(first_ps[stream.Measure], subsequent_ps[stream.Measure]):
                 for mark in top_m[tempo.MetronomeMark]:
+                    if bottom_m[tempo.MetronomeMark].getElementsByOffset(mark.offset):
+                        continue
                     mark_copy = copy.deepcopy(mark)
                     mark_copy.numberImplicit = True
                     bottom_m.insert(mark.offset, mark_copy)
