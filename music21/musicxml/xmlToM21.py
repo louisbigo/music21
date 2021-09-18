@@ -1710,6 +1710,7 @@ class PartParser(XMLParserBase):
             'GeneralNote',
             'KeySignature',
             'StaffLayout',
+            'TempoIndication',
             'TimeSignature',
         ]
 
@@ -1763,6 +1764,15 @@ class PartParser(XMLParserBase):
                 for sourceVoice, copyVoice in zip(sourceMeasure.voices, copyMeasure.voices):
                     copy_into_partStaff(sourceVoice, copyVoice, elementsIdsNotToGoInThisStaff)
                 copyMeasure.flattenUnnecessaryVoices(force=False, inPlace=True)
+
+        # Post-processing: create some helpful implicit MetronomeMarks
+        for subsequent_ps in partStaffs[1:]:
+            first_ps = partStaffs[0]
+            for top_m, bottom_m in zip(first_ps[stream.Measure], subsequent_ps[stream.Measure]):
+                for mark in top_m[tempo.MetronomeMark]:
+                    mark_copy = copy.deepcopy(mark)
+                    mark_copy.numberImplicit = True
+                    bottom_m.insert(mark.offset, mark_copy)
 
         score = self.parent.stream
         for partStaff in partStaffs:
@@ -6172,6 +6182,13 @@ class Test(unittest.TestCase):
         # has only sound tempo=x tag
         # s = converter.parse(testPrimitive.articulations01)
         # s.show()
+
+    def testImportMetronomeMarksC(self):
+        '''Import into multiple PartStaffs'''
+        from music21 import corpus
+        s = corpus.parse('demos/two-parts')
+        self.assertEqual(len(s[tempo.MetronomeMark]), 2)
+        self.assertIs(s[tempo.MetronomeMark].last().numberImplicit, True)
 
     def testImportGraceNotesA(self):
         # test importing from musicxml
