@@ -2053,6 +2053,8 @@ class Pitch(prebase.ProtoM21Object):
     @accidental.setter
     def accidental(self, value: Union[str, int, float, Accidental]):
         if isinstance(value, str):
+            import warnings
+            warnings.warn('Setting accidentals by string is deprecated and will be removed in v.8')
             self._accidental = Accidental(value)
         elif common.isNum(value):
             # check and add any microtones
